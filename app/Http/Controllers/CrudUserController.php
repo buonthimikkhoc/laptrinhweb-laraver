@@ -96,53 +96,49 @@ class CrudUserController extends Controller
     /**
      * Form update user page
      */
-    public function updateUser(Request $request)
-    {
-        $user_id = $request->get('id');
-        $user = User::find($user_id);
+public function updateUser(Request $request)
+{
+    $id = $request->id;
 
-        return view('crud_user.update', ['user' => $user]);
+    // Cách an toàn nhất
+    $user = User::find($id);
+
+    if (!$user) {
+        // KHÔNG cho crash nữa
+        return redirect()->route('user.list')
+            ->with('error', 'Không tìm thấy user!');
     }
+
+    return view('crud_user.update', compact('user'));
+}
+
 
     /**
      * Submit form update user
      */
     public function postUpdateUser(Request $request)
-    {
-        $input = $request->all();
+{
+    $id = $request->id;
 
-        $request->validate([
-            'name' => 'required',
-            'email' => 'required|email|unique:users,id,'.$input['id'],
-            'password' => 'required|min:6',
-        ]);
+    $user = User::find($id);
 
-       $user = User::find($input['id']);
-       $user->name = $input['name'];
-       $user->email = $input['email'];
-       $user->password = $input['password'];
-       $user->save();
+    $user->name = $request->name;
+    $user->email = $request->email;
+    $user->save();
 
-        return redirect("list")->withSuccess('You have signed-in');
-    }
+    return redirect()->route('user.list');
+}
 
     /**
      * List of users
      */
-    public function listUser()
-    {
-       $users = [
-               'users' => User::all()
-       ];
-       return view('crud_user.ronaldo', $users);
+public function listUser()
+{
+    $users = User::all();
+    return view('crud_user.list', ['users' => $users]);
+}
 
-        if(Auth::check()){
-            $users = User::all();
-            return view('crud_user.list', ['users' => $users]);
-        }
 
-        return redirect("login")->withSuccess('You are not allowed to access');
-    }
 
     /**
      * Sign out
